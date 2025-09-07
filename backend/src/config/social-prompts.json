@@ -1,0 +1,16 @@
+{
+  "linkedin": {
+    "prompts": [
+      "Create a professional LinkedIn post highlighting the key insights from this video. Focus on actionable takeaways that would be valuable for professionals. Include relevant hashtags and make it engaging for a business audience. Keep it concise but impactful.",
+      "Write a thought-provoking LinkedIn post that summarizes the main themes of this video content. Position it as industry insights that would spark meaningful discussion among professionals. Include a call-to-action that encourages engagement.",
+      "Generate a LinkedIn post that presents the video's key points as professional development insights. Focus on lessons learned and practical applications. Make it shareable and include relevant industry hashtags."
+    ]
+  },
+  "twitter": {
+    "prompts": [
+      "Create a Twitter thread (3-5 tweets) summarizing the key points from this video. Make each tweet engaging and use relevant hashtags. Keep the tone conversational and include emojis where appropriate.",
+      "Write a compelling Twitter post that captures the most interesting insight from this video. Make it shareable, include relevant hashtags, and keep it under 280 characters while being impactful.",
+      "Generate a Twitter thread that breaks down the main takeaways from this video into bite-sized, tweetable insights. Use engaging language and include relevant hashtags and emojis."
+    ]
+  }
+}
