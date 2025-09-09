@@ -20,8 +20,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+
 app.post('/api/analyze', async (req, res) => {
+  console.log('🔥 API /analyze endpoint hit!');
   const { url } = req.body;
+  console.log('📝 Request URL:', url);
   
   if (!url) {
     return res.status(400).json({
@@ -49,7 +52,7 @@ app.post('/api/analyze', async (req, res) => {
     // Generate social media posts
     console.log('📱 Generating social media posts...');
     const socialPosts = await aiAnalysisService.generateSocialMediaPosts(aiAnalysis);
-    console.log(`✅ Generated ${socialPosts.linkedin.length} LinkedIn and ${socialPosts.twitter.length} Twitter posts`);
+    console.log(`✅ Generated ${socialPosts.posts.length} social media posts`);
     
     res.json({
       success: true,

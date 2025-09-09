@@ -25,8 +25,7 @@ export interface AIAnalysisResult {
 }
 
 export interface SocialMediaPosts {
-  linkedin: string[];
-  twitter: string[];
+  posts: string[];
 }
 
 export class AIAnalysisService {
@@ -80,7 +79,7 @@ export class AIAnalysisService {
     
     try {
       const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20250114',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 6000,
         temperature: 0.3,
         messages: [{
@@ -162,31 +161,12 @@ ${formattedTranscript}`
       const prompts = this.loadSocialMediaPrompts();
       const content = this.formatAnalysisForSocialPosts(aiAnalysis);
       
-      const linkedinPosts: string[] = [];
-      const twitterPosts: string[] = [];
+      const posts: string[] = [];
 
-      // Generate LinkedIn posts
-      for (const prompt of prompts.linkedin.prompts) {
+      // Generate social media posts using Twitter-style prompts
+      for (const prompt of prompts.socialMedia.prompts) {
         const response = await this.anthropic.messages.create({
-          model: 'claude-3-5-sonnet-20250114',
-          max_tokens: 1000,
-          temperature: 0.7,
-          messages: [{
-            role: 'user',
-            content: `${prompt}\n\nVideo Analysis:\n${content}`
-          }],
-        });
-
-        const responseContent = response.content[0];
-        if (responseContent.type === 'text') {
-          linkedinPosts.push(responseContent.text.trim());
-        }
-      }
-
-      // Generate Twitter posts
-      for (const prompt of prompts.twitter.prompts) {
-        const response = await this.anthropic.messages.create({
-          model: 'claude-3-5-sonnet-20250114',
+          model: 'claude-3-5-sonnet-20241022',
           max_tokens: 800,
           temperature: 0.7,
           messages: [{
@@ -197,11 +177,11 @@ ${formattedTranscript}`
 
         const responseContent = response.content[0];
         if (responseContent.type === 'text') {
-          twitterPosts.push(responseContent.text.trim());
+          posts.push(responseContent.text.trim());
         }
       }
 
-      return { linkedin: linkedinPosts, twitter: twitterPosts };
+      return { posts };
     } catch (error) {
       console.error('Error generating social media posts:', error);
       return this.getMockSocialMediaPosts();
@@ -219,8 +199,7 @@ ${formattedTranscript}`
     } catch (error) {
       console.error('Error loading social media prompts:', error);
       return {
-        linkedin: { prompts: ['Generate a professional LinkedIn post about this content.'] },
-        twitter: { prompts: ['Generate a Twitter thread about this content.'] }
+        socialMedia: { prompts: ['Generate a social media post about this content.'] }
       };
     }
   }
@@ -254,15 +233,12 @@ ${formattedTranscript}`
    */
   private getMockSocialMediaPosts(): SocialMediaPosts {
     return {
-      linkedin: [
-        "🎯 Just watched an incredible deep dive into AI evaluations! Key takeaway: Proper evaluation frameworks aren't just nice-to-have—they're essential for building reliable AI products. The discussion on LLM-as-judge methodology was particularly insightful. What evaluation strategies are you using in your AI projects? #AI #MachineLearning #ProductManagement",
-        "💡 Four types of AI evaluations that every product manager should know: 1) Code-based evaluations 2) Human evaluations 3) LLM-as-judge evaluations 4) User evaluations. Each serves a different purpose in ensuring AI reliability. The human evaluation remains the gold standard, but scaling is the challenge. How do you balance accuracy with efficiency in your evaluation processes? #AIEvaluation #ProductStrategy",
-        "🔍 Building golden datasets isn't just about data collection—it's about creating the foundation for reliable AI systems. This video breaks down practical approaches that go beyond basic training data. The emphasis on continuous evaluation in production resonated strongly with current industry needs. What's your approach to maintaining data quality at scale? #DataScience #AIReliability #MLOps"
-      ],
-      twitter: [
+      posts: [
         "🧵 Thread: AI Evaluations 101\n\n1/4 Just learned about the 4 main types of AI evaluations:\n• Code-based\n• Human \n• LLM-as-judge\n• User evaluations\n\nEach has its place in building reliable AI 🤖\n\n#AIEvaluation #MachineLearning",
         "💡 Key insight from today: \"Human evaluations are the gold standard, but they don't scale well\"\n\nThis is why LLM-as-judge methods are becoming so important. The trick is designing good evaluation prompts 📝\n\n#AI #ProductManagement #MachineLearning",
-        "🎯 Thread on preventing AI hallucinations:\n\n1/3 It's not just about better models—it's about better evaluation frameworks\n\n2/3 Golden datasets + continuous monitoring = more reliable AI systems\n\n3/3 The key is building evaluation into every stage of development\n\n#AIReliability #MLOps"
+        "🎯 Thread on preventing AI hallucinations:\n\n1/3 It's not just about better models—it's about better evaluation frameworks\n\n2/3 Golden datasets + continuous monitoring = more reliable AI systems\n\n3/3 The key is building evaluation into every stage of development\n\n#AIReliability #MLOps",
+        "🔍 Building golden datasets isn't just about data collection—it's about creating the foundation for reliable AI systems. This video breaks down practical approaches that go beyond basic training data.\n\n#DataScience #AIReliability #MLOps",
+        "🚀 Just watched a deep dive into AI evaluations! Key takeaway: Proper evaluation frameworks are essential for building reliable AI products. The discussion on LLM-as-judge methodology was particularly insightful.\n\n#AI #MachineLearning #ProductManagement"
       ]
     };
   }
