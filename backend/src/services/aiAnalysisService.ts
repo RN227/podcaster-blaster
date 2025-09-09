@@ -79,7 +79,7 @@ export class AIAnalysisService {
     
     try {
       const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 6000,
         temperature: 0.3,
         messages: [{
@@ -166,7 +166,7 @@ ${formattedTranscript}`
       // Generate social media posts using Twitter-style prompts
       for (const prompt of prompts.socialMedia.prompts) {
         const response = await this.anthropic.messages.create({
-          model: 'claude-3-5-sonnet-20241022',
+          model: 'claude-sonnet-4-20250514',
           max_tokens: 800,
           temperature: 0.7,
           messages: [{
