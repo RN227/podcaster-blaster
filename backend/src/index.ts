@@ -42,29 +42,40 @@ app.post('/api/analyze', async (req, res) => {
     // Extract transcript
     console.log('📝 Extracting transcript...');
     const videoInfo = await transcriptService.getTranscript(url);
+    console.log(`✅ Transcript extracted! Found ${videoInfo.transcript.length} segments`);
     
-    // Analyze transcript with AI
-    console.log('🤖 Analyzing transcript with AI...');
-    const aiAnalysis = await aiAnalysisService.analyzeTranscript(videoInfo.transcript);
+    // Try to analyze transcript with AI
+    let aiAnalysis = null;
+    let socialPosts = null;
+    let aiError = null;
     
-    console.log(`✅ Analysis complete! Generated ${aiAnalysis.keyThemes.length} themes, ${aiAnalysis.toolsAndCompanies.length} tools/companies`);
-    
-    // Generate social media posts
-    console.log('📱 Generating social media posts...');
-    const socialPosts = await aiAnalysisService.generateSocialMediaPosts(aiAnalysis);
-    console.log(`✅ Generated ${socialPosts.posts.length} social media posts`);
+    try {
+      console.log('🤖 Analyzing transcript with AI...');
+      aiAnalysis = await aiAnalysisService.analyzeTranscript(videoInfo.transcript);
+      console.log(`✅ Analysis complete! Generated ${aiAnalysis.keyThemes.length} themes, ${aiAnalysis.toolsAndCompanies.length} tools/companies`);
+      
+      // Generate social media posts
+      console.log('📱 Generating social media posts...');
+      socialPosts = await aiAnalysisService.generateSocialMediaPosts(aiAnalysis);
+      console.log(`✅ Generated ${socialPosts.posts.length} social media posts`);
+    } catch (aiErr) {
+      console.error('❌ AI analysis failed:', aiErr);
+      aiError = aiErr instanceof Error ? aiErr.message : 'AI analysis failed';
+    }
     
     res.json({
       success: true,
       data: {
         videoId: videoInfo.id,
         url: videoInfo.url,
+        title: videoInfo.title,
         transcriptSegments: videoInfo.transcript.length,
         transcript: videoInfo.transcript,
         fullText: transcriptService.getFullText(videoInfo.transcript),
         formattedTranscript: transcriptService.formatTranscriptForDisplay(videoInfo.transcript),
         aiAnalysis: aiAnalysis,
-        socialMediaPosts: socialPosts
+        socialMediaPosts: socialPosts,
+        aiError: aiError
       }
     });
 

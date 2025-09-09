@@ -37,12 +37,14 @@ interface AnalysisResult {
   data?: {
     videoId: string;
     url: string;
+    title?: string;
     transcriptSegments: number;
     transcript: TranscriptSegment[];
     fullText: string;
     formattedTranscript: string;
-    aiAnalysis?: AIAnalysisResult;
-    socialMediaPosts?: SocialMediaPosts;
+    aiAnalysis?: AIAnalysisResult | null;
+    socialMediaPosts?: SocialMediaPosts | null;
+    aiError?: string | null;
   };
   message?: string;
   url?: string;
@@ -302,6 +304,28 @@ const VideoAnalyzer: React.FC = () => {
               <div className="p-6">
                 {activeTab === 'summary' && (
                   <div className="space-y-6">
+                    {result.data.aiError ? (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <div className="flex items-center mb-4">
+                          <svg className="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                          <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
+                        </div>
+                        <p className="text-red-700 mb-4">
+                          The AI analysis features are currently unavailable. The transcript was successfully extracted, but summary generation failed.
+                        </p>
+                        <div className="bg-red-100 rounded p-3">
+                          <p className="text-sm text-red-800">
+                            <strong>Error:</strong> {result.data.aiError}
+                          </p>
+                        </div>
+                        <p className="text-sm text-red-600 mt-3">
+                          You can still view the complete transcript in the Transcript tab.
+                        </p>
+                      </div>
+                    ) : result.data.aiAnalysis ? (
+                      <>
                     {/* Hosts and Guests Section - Side by side on wider screens */}
                     <div className="grid md:grid-cols-2 gap-6">
                       {/* Hosts Section */}
@@ -375,11 +399,32 @@ const VideoAnalyzer: React.FC = () => {
                         </ul>
                       </div>
                     )}
+                      </>
+                    ) : null}
                   </div>
                 )}
 
                 {activeTab === 'themes' && (
                   <div className="space-y-4">
+                    {result.data.aiError ? (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <div className="flex items-center mb-4">
+                          <svg className="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                          <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
+                        </div>
+                        <p className="text-red-700 mb-4">
+                          Key themes analysis is currently unavailable due to an AI processing error.
+                        </p>
+                        <div className="bg-red-100 rounded p-3">
+                          <p className="text-sm text-red-800">
+                            <strong>Error:</strong> {result.data.aiError}
+                          </p>
+                        </div>
+                      </div>
+                    ) : result.data.aiAnalysis ? (
+                      <>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Themes & Core Discussion Points</h3>
                     <div className="space-y-6">
                       {result.data.aiAnalysis.keyThemes.map((theme, index) => (
@@ -422,11 +467,32 @@ const VideoAnalyzer: React.FC = () => {
                         </div>
                       ))}
                     </div>
+                      </>
+                    ) : null}
                   </div>
                 )}
 
-                {activeTab === 'tools' && result.data.aiAnalysis.toolsAndCompanies.length > 0 && (
+                {activeTab === 'tools' && (
                   <div className="space-y-4">
+                    {result.data.aiError ? (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <div className="flex items-center mb-4">
+                          <svg className="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                          <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
+                        </div>
+                        <p className="text-red-700 mb-4">
+                          Tools and companies analysis is currently unavailable due to an AI processing error.
+                        </p>
+                        <div className="bg-red-100 rounded p-3">
+                          <p className="text-sm text-red-800">
+                            <strong>Error:</strong> {result.data.aiError}
+                          </p>
+                        </div>
+                      </div>
+                    ) : result.data.aiAnalysis?.toolsAndCompanies.length > 0 ? (
+                      <>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Tools & Companies Mentioned</h3>
                     <div className="space-y-4">
                       {result.data.aiAnalysis.toolsAndCompanies.map((item, index) => (
@@ -469,11 +535,33 @@ const VideoAnalyzer: React.FC = () => {
                         </div>
                       ))}
                     </div>
+                      </>
+                    ) : (
+                      <p className="text-gray-500 italic">No tools or companies were identified in this video.</p>
+                    )}
                   </div>
                 )}
 
-
-                {activeTab === 'social' && result.data.socialMediaPosts && (
+                {activeTab === 'social' && (
+                  <div className="space-y-4">
+                    {result.data.aiError ? (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <div className="flex items-center mb-4">
+                          <svg className="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                          <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
+                        </div>
+                        <p className="text-red-700 mb-4">
+                          Social media post generation is currently unavailable due to an AI processing error.
+                        </p>
+                        <div className="bg-red-100 rounded p-3">
+                          <p className="text-sm text-red-800">
+                            <strong>Error:</strong> {result.data.aiError}
+                          </p>
+                        </div>
+                      </div>
+                    ) : result.data.socialMediaPosts && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media Posts</h3>
                     <div className="space-y-6">
@@ -505,6 +593,9 @@ const VideoAnalyzer: React.FC = () => {
                         </div>
                       ))}
                     </div>
+                    ) : (
+                      <p className="text-gray-500 italic">No social media posts available.</p>
+                    )}
                   </div>
                 )}
 

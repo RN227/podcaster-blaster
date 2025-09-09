@@ -70,9 +70,9 @@ export class AIAnalysisService {
    * Analyze transcript using Claude AI
    */
   async analyzeTranscript(transcript: TranscriptSegment[]): Promise<AIAnalysisResult> {
-    // If API key is not configured, return mock data
+    // If API key is not configured, throw error
     if (!this.anthropic) {
-      return this.getMockAnalysis();
+      throw new Error('Claude API key not configured. Please set ANTHROPIC_API_KEY environment variable.');
     }
 
     const formattedTranscript = this.formatTranscriptForAnalysis(transcript);
@@ -138,14 +138,14 @@ ${formattedTranscript}`
           return JSON.parse(content.text);
         } catch (parseError) {
           console.error('Failed to parse AI response as JSON:', parseError);
-          return this.getMockAnalysis();
+          throw new Error('Failed to parse Claude AI response. The response may be malformed.');
         }
       }
       
-      return this.getMockAnalysis();
+      throw new Error('Claude AI returned an unexpected response format.');
     } catch (error) {
       console.error('Error calling Claude API:', error);
-      return this.getMockAnalysis();
+      throw new Error(`Claude AI analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -154,7 +154,7 @@ ${formattedTranscript}`
    */
   async generateSocialMediaPosts(aiAnalysis: AIAnalysisResult): Promise<SocialMediaPosts> {
     if (!this.anthropic) {
-      return this.getMockSocialMediaPosts();
+      throw new Error('Claude API key not configured. Please set ANTHROPIC_API_KEY environment variable.');
     }
 
     try {
@@ -184,7 +184,7 @@ ${formattedTranscript}`
       return { posts };
     } catch (error) {
       console.error('Error generating social media posts:', error);
-      return this.getMockSocialMediaPosts();
+      throw new Error(`Failed to generate social media posts: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -228,116 +228,4 @@ ${formattedTranscript}`
     return content;
   }
 
-  /**
-   * Get mock social media posts for development/fallback
-   */
-  private getMockSocialMediaPosts(): SocialMediaPosts {
-    return {
-      posts: [
-        "🧵 Thread: AI Evaluations 101\n\n1/4 Just learned about the 4 main types of AI evaluations:\n• Code-based\n• Human \n• LLM-as-judge\n• User evaluations\n\nEach has its place in building reliable AI 🤖\n\n#AIEvaluation #MachineLearning",
-        "💡 Key insight from today: \"Human evaluations are the gold standard, but they don't scale well\"\n\nThis is why LLM-as-judge methods are becoming so important. The trick is designing good evaluation prompts 📝\n\n#AI #ProductManagement #MachineLearning",
-        "🎯 Thread on preventing AI hallucinations:\n\n1/3 It's not just about better models—it's about better evaluation frameworks\n\n2/3 Golden datasets + continuous monitoring = more reliable AI systems\n\n3/3 The key is building evaluation into every stage of development\n\n#AIReliability #MLOps",
-        "🔍 Building golden datasets isn't just about data collection—it's about creating the foundation for reliable AI systems. This video breaks down practical approaches that go beyond basic training data.\n\n#DataScience #AIReliability #MLOps",
-        "🚀 Just watched a deep dive into AI evaluations! Key takeaway: Proper evaluation frameworks are essential for building reliable AI products. The discussion on LLM-as-judge methodology was particularly insightful.\n\n#AI #MachineLearning #ProductManagement"
-      ]
-    };
-  }
-
-  /**
-   * Get mock analysis data for development/fallback
-   */
-  private getMockAnalysis(): AIAnalysisResult {
-    return {
-      keyThemes: [
-        {
-          title: "The Critical Need for AI Evaluations",
-          summary: "Discussion of why AI evaluations are essential for building reliable AI products and preventing hallucinations in production systems. The speakers emphasize how industry leaders are prioritizing evaluation frameworks.",
-          keyQuote: "The CPOs of these companies are telling you eval are really important. You should probably think what are AI eval exactly.",
-          timestamp: "1:23"
-        },
-        {
-          title: "Four Types of AI Evaluation Methods",
-          summary: "Comprehensive overview of the four main evaluation approaches: code-based evaluations, human evaluations, LLM-as-judge evaluations, and user evaluations. Each method has specific use cases and benefits.",
-          keyQuote: "There are four main types of evaluations: code-based, human, LLM-as-judge, and user evaluations",
-          timestamp: "2:45"
-        },
-        {
-          title: "Code-Based Evaluation Implementation",
-          summary: "Deep dive into implementing code-based evaluations, including setting up automated testing frameworks and measuring accuracy metrics for AI outputs.",
-          timestamp: "5:12"
-        },
-        {
-          title: "Human Evaluation Best Practices",
-          summary: "Guidelines for conducting effective human evaluations, including rater selection, bias mitigation, and scaling human feedback processes.",
-          keyQuote: "Human evaluations are the gold standard, but they don't scale well",
-          timestamp: "8:30"
-        },
-        {
-          title: "LLM-as-Judge Methodology",
-          summary: "Exploring how to use language models to evaluate other AI systems, including prompt design for evaluation tasks and handling evaluation bias.",
-          timestamp: "12:15"
-        },
-        {
-          title: "Building Golden Datasets for Training",
-          summary: "Practical approaches to creating high-quality datasets that serve as the foundation for training reliable AI systems and maintaining consistency in outputs.",
-          keyQuote: "Building golden datasets is essential for training reliable AI systems",
-          timestamp: "16:45"
-        },
-        {
-          title: "Production Monitoring and Evaluation",
-          summary: "Strategies for implementing continuous evaluation systems in production, including real-time monitoring and automated alerting for performance degradation.",
-          timestamp: "20:30"
-        },
-        {
-          title: "Preventing AI Hallucinations in Production",
-          summary: "Advanced strategies and frameworks for implementing proper evaluation systems that help prevent AI hallucinations and maintain system reliability in production environments.",
-          keyQuote: "Proper evaluation frameworks help prevent AI hallucinations in production",
-          timestamp: "24:10"
-        }
-      ],
-      toolsAndCompanies: [
-        {
-          name: "Claude",
-          type: "tool",
-          context: "Mentioned as an AI model for evaluation and analysis tasks",
-          link: "https://claude.ai"
-        },
-        {
-          name: "OpenAI",
-          type: "company",
-          context: "Referenced as a provider of LLM models for evaluation",
-          link: "https://openai.com"
-        },
-        {
-          name: "Anthropic",
-          type: "company",
-          context: "Mentioned in the context of AI safety and evaluation frameworks",
-          link: "https://anthropic.com"
-        },
-        {
-          name: "Python",
-          type: "technology",
-          context: "Programming language mentioned for building evaluation scripts"
-        },
-        {
-          name: "Weights & Biases",
-          type: "tool",
-          context: "MLOps platform discussed for tracking model performance",
-          link: "https://wandb.ai"
-        }
-      ],
-      summary: {
-        hosts: ["Peter Yang"],
-        guests: ["AI Evaluation Expert"],
-        overviewSummary: "This video provides a comprehensive beginner's guide to AI evaluations, covering the four main types of evaluations and their practical implementation. The content emphasizes the growing importance of evaluation skills for product managers working with AI systems.",
-        detailedPoints: [
-          "Introduction to the fundamental problems with LLM hallucinations and the need for proper evaluation",
-          "Overview of the four main types of AI evaluations: code-based, human, LLM-as-judge, and user evaluations",
-          "Practical walkthrough of building golden datasets for training reliable AI systems",
-          "Discussion of how product managers need to develop AI evaluation skills as a core competency",
-          "Real-world examples and frameworks for implementing evaluation systems in production"
-        ]
-      }
-    };
-  }
 }
