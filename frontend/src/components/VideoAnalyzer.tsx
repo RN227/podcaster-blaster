@@ -498,7 +498,7 @@ const VideoAnalyzer: React.FC = () => {
                         </p>
                       </div>
                     </div>
-                  ) : result.data.aiAnalysis?.toolsAndCompanies.length > 0 ? (
+                  ) : result.data.aiAnalysis?.toolsAndCompanies && result.data.aiAnalysis.toolsAndCompanies.length > 0 ? (
                     <div className="space-y-8">
                       <h3 className="text-2xl font-semibold text-slate-900">Tools & Companies Mentioned</h3>
                       <div className="grid gap-6">
