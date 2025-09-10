@@ -74,7 +74,7 @@ const VideoAnalyzer: React.FC = () => {
   const [loadingStage, setLoadingStage] = useState(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'summary' | 'themes' | 'tools' | 'social' | 'transcript'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'themes' | 'tools' | 'social'>('summary');
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -279,19 +279,68 @@ const VideoAnalyzer: React.FC = () => {
       {/* Results */}
       {result && result.data && (
         <div ref={resultsRef} className="space-y-8">
-          {/* Video Player */}
+          {/* Video Player & Transcript Side by Side */}
           <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-slate-200/50 shadow-xl shadow-slate-200/20 overflow-hidden">
             <div className="p-8">
-              <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  ref={iframeRef}
-                  src={getYouTubeEmbedUrl(result.data.videoId)}
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="absolute top-0 left-0 w-full h-full"
-                />
+              {/* Video + Transcript Layout */}
+              <div className="flex flex-col lg:flex-row gap-8">
+                {/* Video Section (60%) */}
+                <div className="lg:w-[60%] flex items-center">
+                  <div className="w-full">
+                    <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-black">
+                      <iframe
+                        ref={iframeRef}
+                        src={getYouTubeEmbedUrl(result.data.videoId)}
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full rounded-2xl"
+                        style={{ height: '440px' }} // Fixed height to match transcript section
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transcript Section (40%) */}
+                <div className="lg:w-[40%]">
+                  <div className="space-y-4 h-full">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-semibold text-slate-900 flex items-center gap-3">
+                        <Quote className="h-5 w-5 text-slate-600" />
+                        Transcript
+                      </h3>
+                      <div className="text-sm text-slate-500">
+                        {result.data.transcriptSegments.toLocaleString()} segments
+                      </div>
+                    </div>
+                    <div className="bg-slate-50/80 rounded-2xl border border-slate-200/50 overflow-y-auto" style={{ height: '392px' }}>
+                      <div className="p-4 space-y-2">
+                        {result.data.transcript.map((segment, index) => {
+                          const minutes = Math.floor(segment.start / 60);
+                          const seconds = Math.floor(segment.start % 60);
+                          const timestamp = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                          
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => seekToTimestamp(timestamp)}
+                              className="w-full flex gap-3 group hover:bg-white/60 rounded-lg p-3 -mx-1 transition-colors cursor-pointer text-left"
+                              title={`Jump to ${timestamp}`}
+                            >
+                              <span className="flex-shrink-0 text-slate-500 group-hover:text-slate-700 transition-colors font-mono text-sm">
+                                [{timestamp}]
+                              </span>
+                              <span className="text-slate-700 leading-relaxed group-hover:text-slate-900 transition-colors text-sm">
+                                {segment.text}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               {/* Video Metadata */}
@@ -359,8 +408,7 @@ const VideoAnalyzer: React.FC = () => {
                   { key: 'summary', label: 'Summary', icon: FileText },
                   { key: 'themes', label: 'Key Themes', icon: Lightbulb },
                   { key: 'tools', label: 'Tools & Companies', icon: Building },
-                  { key: 'social', label: 'Social Content', icon: Share2 },
-                  { key: 'transcript', label: 'Transcript', icon: Quote }
+                  { key: 'social', label: 'Social Content', icon: Share2 }
                 ].map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -679,36 +727,6 @@ const VideoAnalyzer: React.FC = () => {
                 </div>
               )}
 
-              {activeTab === 'transcript' && (
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-semibold text-slate-900">Full Transcript</h3>
-                  <div className="bg-slate-50/80 rounded-2xl p-6 max-h-96 overflow-y-auto border border-slate-200/50">
-                    <div className="space-y-3">
-                      {result.data.transcript.map((segment, index) => {
-                        const minutes = Math.floor(segment.start / 60);
-                        const seconds = Math.floor(segment.start % 60);
-                        const timestamp = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                        
-                        return (
-                          <button
-                            key={index}
-                            onClick={() => seekToTimestamp(timestamp)}
-                            className="w-full flex gap-4 group hover:bg-white/50 rounded-lg p-3 -mx-2 transition-colors cursor-pointer text-left"
-                            title={`Jump to ${timestamp}`}
-                          >
-                            <span className="flex-shrink-0 text-slate-500 group-hover:text-slate-700 transition-colors font-mono text-sm">
-                              [{timestamp}]
-                            </span>
-                            <span className="text-slate-700 leading-relaxed group-hover:text-slate-900 transition-colors">
-                              {segment.text}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
