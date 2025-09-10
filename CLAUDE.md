@@ -17,6 +17,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **ESLint & Prettier**: Maintain consistent code formatting and catch potential issues early
 - **Component Structure**: Keep React components small, focused, and reusable with clear prop interfaces
 
+### Design System & UI Standards
+- **Swiss Spa Minimalism**: Design should be sleek, premium, and minimalist - like a luxury Swiss spa that professionals would pay thousands for
+- **Steve Jobs Standard**: Every interface element should meet the elegance and attention to detail that would make Steve Jobs smile
+- **Icon-First Philosophy**: Use professional Lucide React icons instead of emojis for all UI elements (except where emojis serve as content, like loading states)
+- **Perfect Spacing**: Use 8px spacing system - components should be perfectly spaced (not too close, not too dispersed)
+- **Cohesive Color Palette**: Primary slate (700-900), backgrounds (white/slate with transparency), text hierarchy (slate 400-900), minimal accent colors
+- **Glass Morphism**: Utilize backdrop blur effects, subtle transparency, and layered depth
+- **Premium Typography**: Light to medium font weights, proper hierarchy, generous line spacing
+- **Responsive Elegance**: Every design must be equally elegant on desktop and mobile devices
+- **Micro-interactions**: Smooth transitions, hover states, and subtle animations enhance the premium feel
+
 ### Testing Requirements
 - **Test-Driven Development**: Write tests before implementing features when possible
 - **Component Testing**: Use React Testing Library for all React components
