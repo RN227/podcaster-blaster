@@ -71,11 +71,13 @@ interface AnalysisResult {
 const VideoAnalyzer: React.FC = () => {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'summary' | 'themes' | 'tools' | 'social' | 'transcript'>('summary');
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const validateYouTubeUrl = (url: string): boolean => {
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)[a-zA-Z0-9_-]{11}/;
@@ -135,6 +137,38 @@ const VideoAnalyzer: React.FC = () => {
     );
   };
 
+  const loadingStages = [
+    { icon: '🎬', text: 'Connecting to YouTube...', subtext: 'Extracting video information' },
+    { icon: '📝', text: 'Downloading transcript...', subtext: 'Processing video captions' },
+    { icon: '🤖', text: 'AI is analyzing content...', subtext: 'Identifying key themes and insights' },
+    { icon: '💡', text: 'Extracting key insights...', subtext: 'Finding tools, companies, and quotes' },
+    { icon: '📱', text: 'Generating social content...', subtext: 'Creating LinkedIn and Twitter posts' },
+    { icon: '✨', text: 'Finalizing analysis...', subtext: 'Preparing your results' }
+  ];
+
+  // Auto-advance loading stages
+  React.useEffect(() => {
+    if (loading) {
+      const interval = setInterval(() => {
+        setLoadingStage(prev => (prev + 1) % loadingStages.length);
+      }, 3000); // Change every 3 seconds
+      
+      return () => clearInterval(interval);
+    }
+  }, [loading, loadingStages.length]);
+
+  // Auto-scroll to results when analysis completes
+  React.useEffect(() => {
+    if (result && resultsRef.current) {
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 500); // Small delay for smooth transition
+    }
+  }, [result]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -149,6 +183,7 @@ const VideoAnalyzer: React.FC = () => {
     }
 
     setLoading(true);
+    setLoadingStage(0);
     setError(null);
     setResult(null);
 
@@ -172,6 +207,7 @@ const VideoAnalyzer: React.FC = () => {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
+      setLoadingStage(0);
     }
   };
 
@@ -202,10 +238,22 @@ const VideoAnalyzer: React.FC = () => {
             disabled={loading}
             className="w-full bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 px-8 rounded-2xl hover:from-slate-800 hover:to-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-lg shadow-lg shadow-slate-200/50"
           >
-            {loading ? (
-              <span className="flex items-center justify-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Analyzing Content...
+{loading ? (
+              <span className="flex flex-col items-center justify-center gap-2">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl animate-pulse">{loadingStages[loadingStage].icon}</div>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                </div>
+                <div className="text-center">
+                  <div className="font-medium text-lg">{loadingStages[loadingStage].text}</div>
+                  <div className="text-sm text-white/80 mt-1">{loadingStages[loadingStage].subtext}</div>
+                </div>
+                <div className="w-64 bg-white/20 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-white h-2 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${((loadingStage + 1) / loadingStages.length) * 100}%` }}
+                  ></div>
+                </div>
               </span>
             ) : (
               <span className="flex items-center justify-center gap-3">
@@ -230,7 +278,7 @@ const VideoAnalyzer: React.FC = () => {
 
       {/* Results */}
       {result && result.data && (
-        <div className="space-y-8">
+        <div ref={resultsRef} className="space-y-8">
           {/* Video Player */}
           <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-slate-200/50 shadow-xl shadow-slate-200/20 overflow-hidden">
             <div className="p-8">
@@ -642,16 +690,19 @@ const VideoAnalyzer: React.FC = () => {
                         const timestamp = `${minutes}:${seconds.toString().padStart(2, '0')}`;
                         
                         return (
-                          <div key={index} className="flex gap-4 group hover:bg-white/50 rounded-lg p-2 -mx-2 transition-colors">
-                            <button
-                              onClick={() => seekToTimestamp(timestamp)}
-                              className="flex-shrink-0 text-slate-500 hover:text-slate-700 transition-colors font-mono text-sm"
-                              title={`Jump to ${timestamp}`}
-                            >
+                          <button
+                            key={index}
+                            onClick={() => seekToTimestamp(timestamp)}
+                            className="w-full flex gap-4 group hover:bg-white/50 rounded-lg p-3 -mx-2 transition-colors cursor-pointer text-left"
+                            title={`Jump to ${timestamp}`}
+                          >
+                            <span className="flex-shrink-0 text-slate-500 group-hover:text-slate-700 transition-colors font-mono text-sm">
                               [{timestamp}]
-                            </button>
-                            <span className="text-slate-700 leading-relaxed">{segment.text}</span>
-                          </div>
+                            </span>
+                            <span className="text-slate-700 leading-relaxed group-hover:text-slate-900 transition-colors">
+                              {segment.text}
+                            </span>
+                          </button>
                         );
                       })}
                     </div>
