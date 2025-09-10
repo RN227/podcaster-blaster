@@ -1,5 +1,22 @@
 import React, { useState, useRef } from 'react';
 import { API_BASE_URL } from '../config';
+import { 
+  Play, 
+  Clock, 
+  FileText, 
+  Copy, 
+  ExternalLink, 
+  Lightbulb, 
+  Building, 
+  Users, 
+  User,
+  Quote,
+  Hash,
+  Share2,
+  Loader2,
+  AlertCircle,
+  CheckCircle2
+} from 'lucide-react';
 
 interface TranscriptSegment {
   text: string;
@@ -57,6 +74,7 @@ const VideoAnalyzer: React.FC = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'summary' | 'themes' | 'tools' | 'social' | 'transcript'>('summary');
+  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const validateYouTubeUrl = (url: string): boolean => {
@@ -81,7 +99,6 @@ const VideoAnalyzer: React.FC = () => {
   const seekToTimestamp = (timestamp: string) => {
     if (iframeRef.current && result?.data?.videoId) {
       const seconds = convertTimestampToSeconds(timestamp);
-      // Use postMessage to communicate with the YouTube iframe
       iframeRef.current.contentWindow?.postMessage(
         JSON.stringify({
           event: 'command',
@@ -93,13 +110,26 @@ const VideoAnalyzer: React.FC = () => {
     }
   };
 
+  const handleCopy = async (text: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedStates({ ...copiedStates, [key]: true });
+      setTimeout(() => {
+        setCopiedStates(prev => ({ ...prev, [key]: false }));
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
+
   const renderClickableTimestamp = (timestamp: string, className = '') => {
     return (
       <button
         onClick={() => seekToTimestamp(timestamp)}
-        className={`text-blue-600 hover:text-blue-800 underline cursor-pointer transition-colors ${className}`}
+        className={`inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors font-mono text-sm ${className}`}
         title={`Jump to ${timestamp}`}
       >
+        <Clock className="h-3 w-3" />
         {timestamp}
       </button>
     );
@@ -146,538 +176,490 @@ const VideoAnalyzer: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <form onSubmit={handleSubmit} className="mb-8">
-        <div className="flex flex-col space-y-4">
-          <div>
-            <label htmlFor="youtube-url" className="block text-sm font-medium text-gray-700 mb-2">
+    <div className="max-w-6xl mx-auto">
+      {/* Input Form */}
+      <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-slate-200/50 shadow-xl shadow-slate-200/20 p-8 mb-12">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-3">
+            <label htmlFor="youtube-url" className="block text-sm font-medium text-slate-700">
               YouTube Video URL
             </label>
-            <input
-              type="url"
-              id="youtube-url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <div className="relative">
+              <input
+                type="url"
+                id="youtube-url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="w-full px-4 py-4 text-lg border border-slate-200 rounded-2xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all placeholder-slate-400"
+              />
+              <Play className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+            </div>
           </div>
           
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 px-8 rounded-2xl hover:from-slate-800 hover:to-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-lg shadow-lg shadow-slate-200/50"
           >
             {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Analyzing...
+              <span className="flex items-center justify-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Analyzing Content...
               </span>
             ) : (
-              'Analyze Video'
+              <span className="flex items-center justify-center gap-3">
+                <Lightbulb className="h-5 w-5" />
+                Analyze Video
+              </span>
             )}
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
 
+      {/* Error Display */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">{error}</div>
-            </div>
+        <div className="bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-6 mb-8">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-500" />
+            <h3 className="text-sm font-medium text-red-800">Analysis Failed</h3>
           </div>
+          <p className="mt-2 text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      {result && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Video Analysis</h2>
-            
-            {result.data && (
-              <div className="space-y-6">
-                {/* Video Player - Larger but not full width */}
-                <div className="flex justify-center">
-                  <div className="w-full max-w-4xl">
-                    <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                      <iframe
-                        ref={iframeRef}
-                        src={getYouTubeEmbedUrl(result.data.videoId)}
-                        title="YouTube video player"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="absolute top-0 left-0 w-full h-full rounded-lg shadow-lg"
-                      ></iframe>
-                    </div>
-                  </div>
+      {/* Results */}
+      {result && result.data && (
+        <div className="space-y-8">
+          {/* Video Player */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-slate-200/50 shadow-xl shadow-slate-200/20 overflow-hidden">
+            <div className="p-8">
+              <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  ref={iframeRef}
+                  src={getYouTubeEmbedUrl(result.data.videoId)}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute top-0 left-0 w-full h-full"
+                />
+              </div>
+              
+              {/* Video Metadata */}
+              <div className="grid md:grid-cols-3 gap-8 mt-8">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-slate-600 text-sm uppercase tracking-wide">Video ID</h4>
+                  <p className="font-mono text-slate-900 bg-slate-50 px-3 py-2 rounded-xl text-sm">{result.data.videoId}</p>
                 </div>
-                
-                {/* Video Info - Below Video */}
-                <div className="grid md:grid-cols-3 gap-6 pt-4">
-                  <div>
-                    <h3 className="font-medium text-gray-700 mb-1">Video ID</h3>
-                    <p className="text-gray-600 font-mono text-sm">{result.data.videoId}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700 mb-1">Transcript Segments</h3>
-                    <p className="text-gray-600">{result.data.transcriptSegments} segments</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700 mb-1">Source</h3>
-                    <a 
-                      href={result.data.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-sm underline inline-flex items-center"
-                    >
-                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
-                      </svg>
-                      Watch on YouTube
-                    </a>
-                  </div>
+                <div className="space-y-2">
+                  <h4 className="font-medium text-slate-600 text-sm uppercase tracking-wide">Segments</h4>
+                  <p className="text-slate-900 text-lg">{result.data.transcriptSegments.toLocaleString()}</p>
                 </div>
-                
-                {/* Export Options */}
-                <div className="border-t pt-4">
-                  <h3 className="font-medium text-gray-700 mb-3">Export Options</h3>
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={() => navigator.clipboard.writeText(result.data!.fullText)}
-                      className="px-4 py-2 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 transition-colors inline-flex items-center"
-                    >
-                      📋 Plain Text
-                    </button>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(result.data!.formattedTranscript)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors inline-flex items-center"
-                    >
-                      🕐 With Timestamps
-                    </button>
-                    {result.data.aiAnalysis && (
-                      <button
-                        onClick={() => navigator.clipboard.writeText(JSON.stringify(result.data!.aiAnalysis, null, 2))}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors inline-flex items-center"
-                      >
-                        🧠 AI Analysis (JSON)
-                      </button>
-                    )}
-                  </div>
+                <div className="space-y-2">
+                  <h4 className="font-medium text-slate-600 text-sm uppercase tracking-wide">Source</h4>
+                  <a 
+                    href={result.data.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="text-sm">Watch on YouTube</span>
+                  </a>
                 </div>
               </div>
-            )}
+              
+              {/* Export Options */}
+              <div className="border-t border-slate-200 pt-8 mt-8">
+                <h4 className="font-medium text-slate-700 mb-4 text-sm uppercase tracking-wide">Export Options</h4>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => handleCopy(result.data!.fullText, 'plainText')}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm hover:bg-slate-200 transition-colors"
+                  >
+                    {copiedStates['plainText'] ? <CheckCircle2 className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                    Plain Text
+                  </button>
+                  <button
+                    onClick={() => handleCopy(result.data!.formattedTranscript, 'withTimestamps')}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm hover:bg-slate-200 transition-colors"
+                  >
+                    {copiedStates['withTimestamps'] ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+                    With Timestamps
+                  </button>
+                  {result.data.aiAnalysis && (
+                    <button
+                      onClick={() => handleCopy(JSON.stringify(result.data!.aiAnalysis, null, 2), 'aiAnalysis')}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm hover:bg-slate-200 transition-colors"
+                    >
+                      {copiedStates['aiAnalysis'] ? <CheckCircle2 className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
+                      AI Analysis (JSON)
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
-          
-          {result.data && (
-            <div>
-              {/* Tab Navigation */}
-              <div className="border-b border-gray-200 overflow-x-auto">
-                <nav className="flex space-x-8 px-6 min-w-max" aria-label="Tabs">
-                  {[
-                    { key: 'summary', label: '📝 Summary', icon: '📝' },
-                    { key: 'themes', label: '💡 Key Themes', icon: '💡' },
-                    { key: 'tools', label: '🛠️ Tools & Companies', icon: '🛠️' },
-                    { key: 'social', label: '📱 Social Media', icon: '📱' },
-                    { key: 'transcript', label: '📄 Transcript', icon: '📄' }
-                  ].map((tab) => (
+
+          {/* Tab Navigation & Content */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-slate-200/50 shadow-xl shadow-slate-200/20 overflow-hidden">
+            {/* Tab Navigation */}
+            <div className="border-b border-slate-200">
+              <nav className="flex overflow-x-auto px-8" aria-label="Tabs">
+                {[
+                  { key: 'summary', label: 'Summary', icon: FileText },
+                  { key: 'themes', label: 'Key Themes', icon: Lightbulb },
+                  { key: 'tools', label: 'Tools & Companies', icon: Building },
+                  { key: 'social', label: 'Social Content', icon: Share2 },
+                  { key: 'transcript', label: 'Transcript', icon: Quote }
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  return (
                     <button
                       key={tab.key}
                       onClick={() => setActiveTab(tab.key as any)}
-                      className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                      className={`flex items-center gap-3 whitespace-nowrap py-6 px-1 mr-8 border-b-2 font-medium text-sm transition-colors ${
                         activeTab === tab.key
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          ? 'border-slate-700 text-slate-900'
+                          : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                       }`}
                     >
+                      <Icon className="h-4 w-4" />
                       {tab.label}
                     </button>
-                  ))}
-                </nav>
-              </div>
+                  );
+                })}
+              </nav>
+            </div>
 
-              {/* Tab Content */}
-              <div className="p-6">
-                {activeTab === 'summary' && (
-                  <div className="space-y-6">
-                    {result.data.aiError ? (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                        <div className="flex items-center mb-4">
-                          <svg className="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                          </svg>
-                          <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
-                        </div>
-                        <p className="text-red-700 mb-4">
-                          The AI analysis features are currently unavailable. The transcript was successfully extracted, but summary generation failed.
-                        </p>
-                        <div className="bg-red-100 rounded p-3">
-                          <p className="text-sm text-red-800">
-                            <strong>Error:</strong> {result.data.aiError}
-                          </p>
-                        </div>
-                        <p className="text-sm text-red-600 mt-3">
-                          You can still view the complete transcript in the Transcript tab.
+            {/* Tab Content */}
+            <div className="p-8">
+              {activeTab === 'summary' && (
+                <div className="space-y-8">
+                  {result.data.aiError ? (
+                    <div className="bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-8">
+                      <div className="flex items-center gap-3 mb-4">
+                        <AlertCircle className="h-6 w-6 text-red-500" />
+                        <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
+                      </div>
+                      <p className="text-red-700 mb-4">
+                        The AI analysis features are currently unavailable. The transcript was successfully extracted, but summary generation failed.
+                      </p>
+                      <div className="bg-red-100/80 rounded-xl p-4">
+                        <p className="text-sm text-red-800">
+                          <strong>Error:</strong> {result.data.aiError}
                         </p>
                       </div>
-                    ) : (
-                      <div>
-                        {/* Hosts and Guests Section - Side by side on wider screens */}
-                        <div className="grid md:grid-cols-2 gap-6">
-                          {/* Hosts Section */}
-                          {result.data.aiAnalysis.summary.hosts.length > 0 && (
-                            <div className="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-400">
-                              <h4 className="text-md font-semibold text-purple-900 mb-2 flex items-center">
-                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                </svg>
-                                Host{result.data.aiAnalysis.summary.hosts.length > 1 ? 's' : ''}
-                              </h4>
-                              <div className="flex flex-wrap gap-2">
-                                {result.data.aiAnalysis.summary.hosts.map((host, index) => (
-                                  <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                                    {host}
-                                  </span>
-                                ))}
-                              </div>
+                      <p className="text-sm text-red-600 mt-3">
+                        You can still view the complete transcript in the Transcript tab.
+                      </p>
+                    </div>
+                  ) : result.data.aiAnalysis ? (
+                    <div className="space-y-8">
+                      {/* Hosts and Guests */}
+                      <div className="grid md:grid-cols-2 gap-8">
+                        {result.data.aiAnalysis.summary.hosts.length > 0 && (
+                          <div className="bg-slate-50/80 rounded-2xl p-6 border border-slate-200/50">
+                            <h4 className="font-semibold text-slate-900 mb-4 flex items-center gap-3">
+                              <Users className="h-5 w-5 text-slate-600" />
+                              Host{result.data.aiAnalysis.summary.hosts.length > 1 ? 's' : ''}
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {result.data.aiAnalysis.summary.hosts.map((host, index) => (
+                                <span key={index} className="px-4 py-2 bg-white text-slate-700 rounded-xl text-sm font-medium border border-slate-200">
+                                  {host}
+                                </span>
+                              ))}
                             </div>
-                          )}
+                          </div>
+                        )}
 
-                          {/* Guests Section */}
-                          {result.data.aiAnalysis.summary.guests.length > 0 && (
-                            <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
-                              <h4 className="text-md font-semibold text-green-900 mb-2 flex items-center">
-                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
-                                </svg>
-                                Guest{result.data.aiAnalysis.summary.guests.length > 1 ? 's' : ''}
-                              </h4>
-                              <div className="flex flex-wrap gap-2">
-                                {result.data.aiAnalysis.summary.guests.map((guest, index) => (
-                                  <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                                    {guest}
-                                  </span>
-                                ))}
-                              </div>
+                        {result.data.aiAnalysis.summary.guests.length > 0 && (
+                          <div className="bg-slate-50/80 rounded-2xl p-6 border border-slate-200/50">
+                            <h4 className="font-semibold text-slate-900 mb-4 flex items-center gap-3">
+                              <User className="h-5 w-5 text-slate-600" />
+                              Guest{result.data.aiAnalysis.summary.guests.length > 1 ? 's' : ''}
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {result.data.aiAnalysis.summary.guests.map((guest, index) => (
+                                <span key={index} className="px-4 py-2 bg-white text-slate-700 rounded-xl text-sm font-medium border border-slate-200">
+                                  {guest}
+                                </span>
+                              ))}
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
+                      </div>
 
-                        {/* Overview Summary */}
-                        <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
-                          <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
-                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                            </svg>
-                            Overview
+                      {/* Overview */}
+                      <div className="bg-slate-50/80 rounded-2xl p-8 border border-slate-200/50">
+                        <h4 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-slate-600" />
+                          Overview
+                        </h4>
+                        <p className="text-slate-700 leading-relaxed text-lg">{result.data.aiAnalysis.summary.overviewSummary}</p>
+                      </div>
+
+                      {/* Detailed Points */}
+                      {result.data.aiAnalysis.summary.detailedPoints.length > 0 && (
+                        <div className="bg-slate-50/80 rounded-2xl p-8 border border-slate-200/50">
+                          <h4 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-3">
+                            <Hash className="h-5 w-5 text-slate-600" />
+                            Key Points
                           </h4>
-                          <p className="text-blue-800 leading-relaxed">{result.data.aiAnalysis.summary.overviewSummary}</p>
-                        </div>
-
-                        {/* Detailed Points */}
-                        {result.data.aiAnalysis.summary.detailedPoints.length > 0 && (
-                          <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-gray-400">
-                            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                              </svg>
-                              Detailed Summary
-                            </h4>
-                            <ul className="space-y-3">
-                              {result.data.aiAnalysis.summary.detailedPoints.map((point, index) => (
-                                <li key={index} className="flex items-start">
-                                  <span className="flex-shrink-0 w-6 h-6 bg-gray-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
-                                    {index + 1}
-                                  </span>
-                                  <p className="text-gray-700 leading-relaxed">{point}</p>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'themes' && (
-                  <div className="space-y-4">
-                    {result.data.aiError ? (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                        <div className="flex items-center mb-4">
-                          <svg className="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                          </svg>
-                          <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
-                        </div>
-                        <p className="text-red-700 mb-4">
-                          Key themes analysis is currently unavailable due to an AI processing error.
-                        </p>
-                        <div className="bg-red-100 rounded p-3">
-                          <p className="text-sm text-red-800">
-                            <strong>Error:</strong> {result.data.aiError}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Themes & Core Discussion Points</h3>
-                        <div className="space-y-6">
-                          {result.data.aiAnalysis.keyThemes.map((theme, index) => (
-                            <div key={index} className="bg-indigo-50 rounded-lg p-6 border-l-4 border-indigo-400">
-                              <div className="flex items-start">
-                                <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">
+                          <div className="space-y-4">
+                            {result.data.aiAnalysis.summary.detailedPoints.map((point, index) => (
+                              <div key={index} className="flex items-start gap-4">
+                                <div className="flex-shrink-0 w-8 h-8 bg-slate-700 text-white rounded-full flex items-center justify-center text-sm font-semibold">
                                   {index + 1}
-                                </span>
-                                <div className="flex-1">
-                                  {/* Theme Title */}
-                                  <h4 className="text-xl font-bold text-indigo-900 mb-3">{theme.title}</h4>
-                                  
-                                  {/* Theme Summary */}
-                                  <p className="text-gray-800 leading-relaxed mb-4">{theme.summary}</p>
-                                  
-                                  {/* Key Quote - Optional */}
-                                  {theme.keyQuote && (
-                                    <div className="bg-white/70 rounded-lg p-4 mb-3 border-l-4 border-indigo-200">
-                                      <div className="flex items-start">
-                                        <svg className="w-6 h-6 text-indigo-400 mr-3 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707A1 1 0 001 8.586v-4a1 1 0 01.293-.707l3-3A1 1 0 016 1h4a1 1 0 011 1v4a1 1 0 01-.293.707l-3 3z" clipRule="evenodd" />
-                                        </svg>
-                                        <blockquote className="text-gray-700 italic leading-relaxed">
-                                          "{theme.keyQuote}"
-                                        </blockquote>
-                                      </div>
-                                    </div>
-                                  )}
-                                  
-                                  {/* Timestamp */}
-                                  <div className="flex items-center text-sm">
-                                    <svg className="w-4 h-4 mr-1 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                    </svg>
-                                    <span className="text-gray-600 mr-2">Jump to discussion:</span>
-                                    {renderClickableTimestamp(theme.timestamp, 'text-sm font-medium')}
-                                  </div>
                                 </div>
+                                <p className="text-slate-700 leading-relaxed pt-1">{point}</p>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'tools' && (
-                  <div className="space-y-4">
-                    {result.data.aiError ? (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                        <div className="flex items-center mb-4">
-                          <svg className="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                          </svg>
-                          <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
-                        </div>
-                        <p className="text-red-700 mb-4">
-                          Tools and companies analysis is currently unavailable due to an AI processing error.
-                        </p>
-                        <div className="bg-red-100 rounded p-3">
-                          <p className="text-sm text-red-800">
-                            <strong>Error:</strong> {result.data.aiError}
-                          </p>
-                        </div>
-                      </div>
-                    ) : result.data.aiAnalysis?.toolsAndCompanies.length > 0 ? (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Tools & Companies Mentioned</h3>
-                        <div className="space-y-4">
-                          {result.data.aiAnalysis.toolsAndCompanies.map((item, index) => (
-                            <div key={index} className="bg-purple-50 rounded-lg p-4 border border-purple-200 hover:shadow-md transition-shadow">
-                              <div className="flex items-center gap-2 mb-2">
-                                {item.link ? (
-                                  <a 
-                                    href={item.link} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="font-semibold text-purple-900 hover:text-purple-700 underline decoration-dotted flex items-center gap-1"
-                                  >
-                                    {item.name}
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
-                                  </a>
-                                ) : (
-                                  <span className="font-semibold text-purple-900">{item.name}</span>
-                                )}
-                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                  item.type === 'tool' ? 'bg-blue-100 text-blue-800' :
-                                  item.type === 'company' ? 'bg-green-100 text-green-800' :
-                                  'bg-orange-100 text-orange-800'
-                                }`}>
-                                  {item.type}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600 leading-relaxed">{item.context}</p>
-                              {item.link && (
-                                <div className="mt-2 pt-2 border-t border-purple-200">
-                                  <p className="text-xs text-purple-600">
-                                    <svg className="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
-                                    </svg>
-                                    Official website
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 italic">No tools or companies were identified in this video.</p>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'social' && (
-                  <div className="space-y-4">
-                    {result.data.aiError ? (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                        <div className="flex items-center mb-4">
-                          <svg className="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                          </svg>
-                          <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
-                        </div>
-                        <p className="text-red-700 mb-4">
-                          Social media post generation is currently unavailable due to an AI processing error.
-                        </p>
-                        <div className="bg-red-100 rounded p-3">
-                          <p className="text-sm text-red-800">
-                            <strong>Error:</strong> {result.data.aiError}
-                          </p>
-                        </div>
-                      </div>
-                    ) : result.data.socialMediaPosts ? (
-                      <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media Posts</h3>
-                        
-                        {/* LinkedIn Posts */}
-                        {result.data.socialMediaPosts.linkedin.length > 0 && (
-                          <div className="space-y-4">
-                            <h4 className="text-md font-semibold text-blue-700 flex items-center">
-                              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                              </svg>
-                              LinkedIn Posts
-                            </h4>
-                            <div className="space-y-4">
-                              {result.data.socialMediaPosts.linkedin.map((post, index) => (
-                                <div key={index} className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <h5 className="text-sm font-semibold text-blue-900">
-                                      LinkedIn Post #{index + 1}
-                                    </h5>
-                                    <button
-                                      onClick={() => navigator.clipboard.writeText(post)}
-                                      className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors flex items-center"
-                                    >
-                                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"></path>
-                                        <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2V5a2 2 0 00-2-2V5a1 1 0 00-1-1H6a1 1 0 00-1 1v2a2 2 0 00-2 2v6h2V5z"></path>
-                                      </svg>
-                                      Copy
-                                    </button>
-                                  </div>
-                                  <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
-                                    <pre className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans">
-                                      {post}
-                                    </pre>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                            ))}
                           </div>
-                        )}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              )}
 
-                        {/* Twitter Posts */}
-                        {result.data.socialMediaPosts.twitter.length > 0 && (
-                          <div className="space-y-4">
-                            <h4 className="text-md font-semibold text-blue-700 flex items-center">
-                              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                              </svg>
-                              Twitter Posts
-                            </h4>
-                            <div className="space-y-4">
-                              {result.data.socialMediaPosts.twitter.map((post, index) => (
-                                <div key={index} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <h5 className="text-sm font-semibold text-gray-900">
-                                      Twitter Post #{index + 1}
-                                    </h5>
-                                    <button
-                                      onClick={() => navigator.clipboard.writeText(post)}
-                                      className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors flex items-center"
-                                    >
-                                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"></path>
-                                        <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2V5a2 2 0 00-2-2V5a1 1 0 00-1-1H6a1 1 0 00-1 1v2a2 2 0 00-2 2v6h2V5z"></path>
-                                      </svg>
-                                      Copy
-                                    </button>
-                                  </div>
-                                  <div className="bg-white/70 rounded-lg p-4 border border-gray-100">
-                                    <pre className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans">
-                                      {post}
-                                    </pre>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+              {activeTab === 'themes' && (
+                <div className="space-y-6">
+                  {result.data.aiError ? (
+                    <div className="bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-8">
+                      <div className="flex items-center gap-3 mb-4">
+                        <AlertCircle className="h-6 w-6 text-red-500" />
+                        <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
                       </div>
-                    ) : (
-                      <p className="text-gray-500 italic">No social media posts available.</p>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'transcript' && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Full Transcript</h3>
-                    <div className="bg-gray-50 rounded-lg p-6 max-h-96 overflow-y-auto overflow-x-auto border">
-                      <div className="text-sm text-gray-800 font-mono leading-relaxed space-y-2">
-                        {result.data.transcript.map((segment, index) => {
-                          const minutes = Math.floor(segment.start / 60);
-                          const seconds = Math.floor(segment.start % 60);
-                          const timestamp = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                          
-                          return (
-                            <div key={index} className="flex">
-                              <button
-                                onClick={() => seekToTimestamp(timestamp)}
-                                className="text-blue-600 hover:text-blue-800 underline cursor-pointer transition-colors mr-2 font-medium flex-shrink-0"
-                                title={`Jump to ${timestamp}`}
-                              >
-                                [{timestamp}]
-                              </button>
-                              <span className="break-words">{segment.text}</span>
-                            </div>
-                          );
-                        })}
+                      <p className="text-red-700 mb-4">
+                        Key themes analysis is currently unavailable due to an AI processing error.
+                      </p>
+                      <div className="bg-red-100/80 rounded-xl p-4">
+                        <p className="text-sm text-red-800">
+                          <strong>Error:</strong> {result.data.aiError}
+                        </p>
                       </div>
                     </div>
+                  ) : result.data.aiAnalysis?.keyThemes ? (
+                    <div className="space-y-8">
+                      <h3 className="text-2xl font-semibold text-slate-900">Key Themes & Core Discussion Points</h3>
+                      <div className="space-y-8">
+                        {result.data.aiAnalysis.keyThemes.map((theme, index) => (
+                          <div key={index} className="bg-slate-50/80 rounded-2xl p-8 border border-slate-200/50">
+                            <div className="flex items-start gap-6">
+                              <div className="flex-shrink-0 w-10 h-10 bg-slate-700 text-white rounded-full flex items-center justify-center text-lg font-bold">
+                                {index + 1}
+                              </div>
+                              <div className="flex-1 space-y-4">
+                                <h4 className="text-xl font-bold text-slate-900">{theme.title}</h4>
+                                <p className="text-slate-700 leading-relaxed text-lg">{theme.summary}</p>
+                                
+                                {theme.keyQuote && (
+                                  <div className="bg-white/80 rounded-xl p-6 border border-slate-200/50">
+                                    <div className="flex items-start gap-4">
+                                      <Quote className="h-6 w-6 text-slate-400 flex-shrink-0 mt-1" />
+                                      <blockquote className="text-slate-700 italic leading-relaxed">
+                                        "{theme.keyQuote}"
+                                      </blockquote>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <div className="flex items-center gap-2 pt-2">
+                                  <span className="text-sm text-slate-600">Jump to discussion:</span>
+                                  {renderClickableTimestamp(theme.timestamp, 'font-medium')}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {activeTab === 'tools' && (
+                <div className="space-y-6">
+                  {result.data.aiError ? (
+                    <div className="bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-8">
+                      <div className="flex items-center gap-3 mb-4">
+                        <AlertCircle className="h-6 w-6 text-red-500" />
+                        <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
+                      </div>
+                      <p className="text-red-700 mb-4">
+                        Tools and companies analysis is currently unavailable due to an AI processing error.
+                      </p>
+                      <div className="bg-red-100/80 rounded-xl p-4">
+                        <p className="text-sm text-red-800">
+                          <strong>Error:</strong> {result.data.aiError}
+                        </p>
+                      </div>
+                    </div>
+                  ) : result.data.aiAnalysis?.toolsAndCompanies.length > 0 ? (
+                    <div className="space-y-8">
+                      <h3 className="text-2xl font-semibold text-slate-900">Tools & Companies Mentioned</h3>
+                      <div className="grid gap-6">
+                        {result.data.aiAnalysis.toolsAndCompanies.map((item, index) => (
+                          <div key={index} className="bg-slate-50/80 rounded-2xl p-6 border border-slate-200/50 hover:bg-slate-100/80 transition-colors">
+                            <div className="flex items-center gap-3 mb-3">
+                              <Building className="h-5 w-5 text-slate-600" />
+                              {item.link ? (
+                                <a 
+                                  href={item.link} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="font-semibold text-slate-900 hover:text-slate-700 flex items-center gap-2"
+                                >
+                                  {item.name}
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              ) : (
+                                <span className="font-semibold text-slate-900">{item.name}</span>
+                              )}
+                              <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                                item.type === 'tool' ? 'bg-blue-100 text-blue-700' :
+                                item.type === 'company' ? 'bg-green-100 text-green-700' :
+                                'bg-orange-100 text-orange-700'
+                              }`}>
+                                {item.type}
+                              </span>
+                            </div>
+                            <p className="text-slate-600 leading-relaxed">{item.context}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-slate-500 italic text-center py-12">No tools or companies were identified in this video.</p>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'social' && (
+                <div className="space-y-8">
+                  {result.data.aiError ? (
+                    <div className="bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-8">
+                      <div className="flex items-center gap-3 mb-4">
+                        <AlertCircle className="h-6 w-6 text-red-500" />
+                        <h3 className="text-lg font-semibold text-red-900">AI Analysis Unavailable</h3>
+                      </div>
+                      <p className="text-red-700 mb-4">
+                        Social media post generation is currently unavailable due to an AI processing error.
+                      </p>
+                      <div className="bg-red-100/80 rounded-xl p-4">
+                        <p className="text-sm text-red-800">
+                          <strong>Error:</strong> {result.data.aiError}
+                        </p>
+                      </div>
+                    </div>
+                  ) : result.data.socialMediaPosts ? (
+                    <div className="space-y-10">
+                      <h3 className="text-2xl font-semibold text-slate-900">Social Media Content</h3>
+                      
+                      {/* LinkedIn Posts */}
+                      {result.data.socialMediaPosts.linkedin.length > 0 && (
+                        <div className="space-y-6">
+                          <h4 className="text-lg font-semibold text-slate-700 flex items-center gap-3">
+                            <Share2 className="h-5 w-5" />
+                            LinkedIn Posts
+                          </h4>
+                          <div className="space-y-6">
+                            {result.data.socialMediaPosts.linkedin.map((post, index) => (
+                              <div key={index} className="bg-slate-50/80 rounded-2xl p-6 border border-slate-200/50">
+                                <div className="flex items-center justify-between mb-4">
+                                  <h5 className="font-semibold text-slate-900">
+                                    Post #{index + 1}
+                                  </h5>
+                                  <button
+                                    onClick={() => handleCopy(post, `linkedin-${index}`)}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-xl text-sm hover:bg-slate-800 transition-colors"
+                                  >
+                                    {copiedStates[`linkedin-${index}`] ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                    Copy
+                                  </button>
+                                </div>
+                                <div className="bg-white/80 rounded-xl p-6 border border-slate-200/50">
+                                  <pre className="whitespace-pre-wrap text-slate-700 leading-relaxed font-sans">
+                                    {post}
+                                  </pre>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Twitter Posts */}
+                      {result.data.socialMediaPosts.twitter.length > 0 && (
+                        <div className="space-y-6">
+                          <h4 className="text-lg font-semibold text-slate-700 flex items-center gap-3">
+                            <Hash className="h-5 w-5" />
+                            Twitter Posts
+                          </h4>
+                          <div className="space-y-6">
+                            {result.data.socialMediaPosts.twitter.map((post, index) => (
+                              <div key={index} className="bg-slate-50/80 rounded-2xl p-6 border border-slate-200/50">
+                                <div className="flex items-center justify-between mb-4">
+                                  <h5 className="font-semibold text-slate-900">
+                                    Post #{index + 1}
+                                  </h5>
+                                  <button
+                                    onClick={() => handleCopy(post, `twitter-${index}`)}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-xl text-sm hover:bg-slate-800 transition-colors"
+                                  >
+                                    {copiedStates[`twitter-${index}`] ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                    Copy
+                                  </button>
+                                </div>
+                                <div className="bg-white/80 rounded-xl p-6 border border-slate-200/50">
+                                  <pre className="whitespace-pre-wrap text-slate-700 leading-relaxed font-sans">
+                                    {post}
+                                  </pre>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-slate-500 italic text-center py-12">No social media posts available.</p>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'transcript' && (
+                <div className="space-y-6">
+                  <h3 className="text-2xl font-semibold text-slate-900">Full Transcript</h3>
+                  <div className="bg-slate-50/80 rounded-2xl p-6 max-h-96 overflow-y-auto border border-slate-200/50">
+                    <div className="space-y-3">
+                      {result.data.transcript.map((segment, index) => {
+                        const minutes = Math.floor(segment.start / 60);
+                        const seconds = Math.floor(segment.start % 60);
+                        const timestamp = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        
+                        return (
+                          <div key={index} className="flex gap-4 group hover:bg-white/50 rounded-lg p-2 -mx-2 transition-colors">
+                            <button
+                              onClick={() => seekToTimestamp(timestamp)}
+                              className="flex-shrink-0 text-slate-500 hover:text-slate-700 transition-colors font-mono text-sm"
+                              title={`Jump to ${timestamp}`}
+                            >
+                              [{timestamp}]
+                            </button>
+                            <span className="text-slate-700 leading-relaxed">{segment.text}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
