@@ -16,6 +16,19 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.get('/', (req, res) => {
+  res.json({ 
+    name: 'Podcaster Blaster API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      analyze: '/api/analyze (POST)'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
