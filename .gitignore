@@ -107,3 +107,16 @@ Thumbs.db
 
 # Vercel
 .vercel
+
+# Test files and temporary VTT files
+*.vtt
+test-*.js
+test-*.ts
+
+# Build artifacts
+backend/dist/
+frontend/dist/
+
+# Temporary transcript files
+backend/temp/
+temp/

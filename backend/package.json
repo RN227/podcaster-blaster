@@ -14,11 +14,9 @@
   "description": "",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.61.0",
-    "@distube/ytdl-core": "^4.16.12",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
-    "express": "^5.1.0",
-    "youtube-transcript": "^1.2.1"
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
