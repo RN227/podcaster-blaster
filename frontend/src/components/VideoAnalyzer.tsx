@@ -124,18 +124,6 @@ const VideoAnalyzer: React.FC = () => {
     }
   };
 
-  const renderClickableTimestamp = (timestamp: string, className = '') => {
-    return (
-      <button
-        onClick={() => seekToTimestamp(timestamp)}
-        className={`inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors font-mono text-sm ${className}`}
-        title={`Jump to ${timestamp}`}
-      >
-        <Clock className="h-3 w-3" />
-        {timestamp}
-      </button>
-    );
-  };
 
   const loadingStages = [
     { icon: '🎬', text: 'Connecting to YouTube...', subtext: 'Extracting video information' },
@@ -563,9 +551,16 @@ const VideoAnalyzer: React.FC = () => {
                                   </div>
                                 )}
                                 
-                                <div className="flex items-center gap-2 pt-2">
-                                  <span className="text-sm text-slate-600">Jump to discussion:</span>
-                                  {renderClickableTimestamp(theme.timestamp, 'font-medium')}
+                                <div className="pt-2">
+                                  <button
+                                    onClick={() => seekToTimestamp(theme.timestamp)}
+                                    className="inline-flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors text-sm font-medium text-slate-700 hover:text-slate-900"
+                                    title={`Jump to ${theme.timestamp}`}
+                                  >
+                                    <Clock className="h-4 w-4" />
+                                    <span>Jump to discussion</span>
+                                    <span className="font-mono text-slate-600">{theme.timestamp}</span>
+                                  </button>
                                 </div>
                               </div>
                             </div>
