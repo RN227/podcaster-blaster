@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
+import type { HistoryItem } from '../App';
+import { saveToHistory } from '../utils/historyStorage';
 import { 
   Play, 
   Clock, 
@@ -68,7 +70,17 @@ interface AnalysisResult {
   url?: string;
 }
 
-const VideoAnalyzer: React.FC = () => {
+interface VideoAnalyzerProps {
+  selectedHistoryItem: HistoryItem | null;
+  isNewVideo: boolean;
+  onAnalysisComplete: () => void;
+}
+
+const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({
+  selectedHistoryItem,
+  isNewVideo,
+  onAnalysisComplete
+}) => {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
@@ -76,6 +88,7 @@ const VideoAnalyzer: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'summary' | 'themes' | 'tools' | 'social'>('summary');
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
+  const [isLoadingFromHistory, setIsLoadingFromHistory] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -145,9 +158,45 @@ const VideoAnalyzer: React.FC = () => {
     }
   }, [loading, loadingStages.length]);
 
+  // Handle loading from history
+  useEffect(() => {
+    if (selectedHistoryItem && !isNewVideo) {
+      setIsLoadingFromHistory(true);
+      setError(null);
+      setActiveTab('summary');
+      
+      // Set URL from history
+      setUrl(selectedHistoryItem.url);
+      
+      // Load analysis data from history
+      const historyResult: AnalysisResult = {
+        success: true,
+        data: selectedHistoryItem.analysisData
+      };
+      
+      // Simulate brief loading for better UX
+      setTimeout(() => {
+        setResult(historyResult);
+        setIsLoadingFromHistory(false);
+      }, 300);
+    }
+  }, [selectedHistoryItem, isNewVideo]);
+
+  // Handle new video reset
+  useEffect(() => {
+    if (isNewVideo) {
+      setUrl('');
+      setResult(null);
+      setError(null);
+      setActiveTab('summary');
+      setIsLoadingFromHistory(false);
+      setCopiedStates({});
+    }
+  }, [isNewVideo]);
+
   // Auto-scroll to results when analysis completes
-  React.useEffect(() => {
-    if (result && resultsRef.current) {
+  useEffect(() => {
+    if (result && resultsRef.current && !isLoadingFromHistory) {
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ 
           behavior: 'smooth', 
@@ -155,7 +204,7 @@ const VideoAnalyzer: React.FC = () => {
         });
       }, 500); // Small delay for smooth transition
     }
-  }, [result]);
+  }, [result, isLoadingFromHistory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,6 +240,14 @@ const VideoAnalyzer: React.FC = () => {
 
       const data = await response.json();
       setResult(data);
+      
+      // Save to history and notify parent
+      if (data.success && data.data) {
+        saveToHistory(data.data);
+        onAnalysisComplete();
+        // Dispatch event to update sidebar
+        window.dispatchEvent(new Event('historyUpdated'));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -223,10 +280,15 @@ const VideoAnalyzer: React.FC = () => {
           
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || isLoadingFromHistory}
             className="w-full bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 px-8 rounded-2xl hover:from-slate-800 hover:to-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-lg shadow-lg shadow-slate-200/50"
           >
-{loading ? (
+            {isLoadingFromHistory ? (
+              <span className="flex items-center justify-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Loading from History
+              </span>
+            ) : loading ? (
               <span className="flex flex-col items-center justify-center gap-2">
                 <div className="flex items-center gap-3">
                   <div className="text-2xl animate-pulse">{loadingStages[loadingStage].icon}</div>
