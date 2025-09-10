@@ -25,22 +25,30 @@ export interface AIAnalysisResult {
 }
 
 export interface SocialMediaPosts {
-  posts: string[];
+  linkedin: string[];
+  twitter: string[];
 }
 
 export class AIAnalysisService {
-  private anthropic: Anthropic;
+  private anthropic: Anthropic | null;
+  private modelName: string;
 
   constructor() {
     const apiKey = process.env.ANTHROPIC_API_KEY;
+    this.modelName = process.env.CLAUDE_MODEL || 'claude-3-5-sonnet-20241022';
     
     if (!apiKey || apiKey === 'your_api_key_here') {
-      console.warn('⚠️ ANTHROPIC_API_KEY not set. AI analysis will be mocked.');
-      this.anthropic = null as any;
-    } else {
+      throw new Error('ANTHROPIC_API_KEY not configured. Please set your Claude API key.');
+    }
+    
+    try {
       this.anthropic = new Anthropic({
         apiKey: apiKey,
       });
+      console.log(`✅ Claude API initialized with model: ${this.modelName}`);
+    } catch (error) {
+      console.error('❌ Failed to initialize Claude API:', error);
+      throw new Error(`Failed to initialize Claude API: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -70,16 +78,15 @@ export class AIAnalysisService {
    * Analyze transcript using Claude AI
    */
   async analyzeTranscript(transcript: TranscriptSegment[]): Promise<AIAnalysisResult> {
-    // If API key is not configured, throw error
     if (!this.anthropic) {
-      throw new Error('Claude API key not configured. Please set ANTHROPIC_API_KEY environment variable.');
+      throw new Error('Claude API not initialized');
     }
 
     const formattedTranscript = this.formatTranscriptForAnalysis(transcript);
     
     try {
       const response = await this.anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: this.modelName,
         max_tokens: 6000,
         temperature: 0.3,
         messages: [{
@@ -134,10 +141,12 @@ ${formattedTranscript}`
 
       const content = response.content[0];
       if (content.type === 'text') {
+        console.log('🔍 Raw Claude response:', content.text);
         try {
           return JSON.parse(content.text);
         } catch (parseError) {
           console.error('Failed to parse AI response as JSON:', parseError);
+          console.error('Raw response that failed to parse:', content.text);
           throw new Error('Failed to parse Claude AI response. The response may be malformed.');
         }
       }
@@ -154,19 +163,38 @@ ${formattedTranscript}`
    */
   async generateSocialMediaPosts(aiAnalysis: AIAnalysisResult): Promise<SocialMediaPosts> {
     if (!this.anthropic) {
-      throw new Error('Claude API key not configured. Please set ANTHROPIC_API_KEY environment variable.');
+      throw new Error('Claude API not initialized');
     }
 
     try {
       const prompts = this.loadSocialMediaPrompts();
       const content = this.formatAnalysisForSocialPosts(aiAnalysis);
       
-      const posts: string[] = [];
+      const linkedinPosts: string[] = [];
+      const twitterPosts: string[] = [];
 
-      // Generate social media posts using Twitter-style prompts
-      for (const prompt of prompts.socialMedia.prompts) {
+      // Generate LinkedIn posts
+      for (const prompt of prompts.linkedin.prompts) {
         const response = await this.anthropic.messages.create({
-          model: 'claude-sonnet-4-20250514',
+          model: this.modelName,
+          max_tokens: 1000,
+          temperature: 0.7,
+          messages: [{
+            role: 'user',
+            content: `${prompt}\n\nVideo Analysis:\n${content}`
+          }],
+        });
+
+        const responseContent = response.content[0];
+        if (responseContent.type === 'text') {
+          linkedinPosts.push(responseContent.text.trim());
+        }
+      }
+
+      // Generate Twitter posts
+      for (const prompt of prompts.twitter.prompts) {
+        const response = await this.anthropic.messages.create({
+          model: this.modelName,
           max_tokens: 800,
           temperature: 0.7,
           messages: [{
@@ -177,11 +205,11 @@ ${formattedTranscript}`
 
         const responseContent = response.content[0];
         if (responseContent.type === 'text') {
-          posts.push(responseContent.text.trim());
+          twitterPosts.push(responseContent.text.trim());
         }
       }
 
-      return { posts };
+      return { linkedin: linkedinPosts, twitter: twitterPosts };
     } catch (error) {
       console.error('Error generating social media posts:', error);
       throw new Error(`Failed to generate social media posts: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -199,7 +227,8 @@ ${formattedTranscript}`
     } catch (error) {
       console.error('Error loading social media prompts:', error);
       return {
-        socialMedia: { prompts: ['Generate a social media post about this content.'] }
+        linkedin: { prompts: ['Generate a professional LinkedIn post about this content.'] },
+        twitter: { prompts: ['Generate a Twitter thread about this content.'] }
       };
     }
   }
@@ -227,5 +256,6 @@ ${formattedTranscript}`
 
     return content;
   }
+
 
 }

@@ -1,9 +1,16 @@
 {
-  "socialMedia": {
+  "linkedin": {
     "prompts": [
-      "Write a compelling social media post that captures the most interesting insight from this video. Make it shareable, include relevant hashtags, and keep it under 280 characters while being impactful.",
+      "Write a professional LinkedIn post that captures the most valuable insights from this video. Make it engaging for business professionals, include relevant hashtags, and focus on actionable takeaways. Keep it professional but conversational.",
+      "Generate a LinkedIn post that highlights the key business implications from this video. Include relevant industry hashtags and make it shareable for professional networks. Focus on strategic insights and practical applications.",
+      "Create a thought-provoking LinkedIn post about the main themes from this video. Use professional language, include relevant hashtags, and encourage discussion among your network. Focus on industry trends and future implications."
+    ]
+  },
+  "twitter": {
+    "prompts": [
+      "Write a compelling Twitter post that captures the most interesting insight from this video. Make it shareable, include relevant hashtags, and keep it under 280 characters while being impactful.",
       "Generate a Twitter thread that breaks down the main takeaways from this video into bite-sized, tweetable insights. Use engaging language and include relevant hashtags and emojis.",
-      "Create an engaging social media post highlighting the key insights from this video. Focus on actionable takeaways. Include relevant hashtags and make it conversational with emojis."
+      "Create an engaging Twitter post highlighting the key insights from this video. Focus on actionable takeaways. Include relevant hashtags and make it conversational with emojis."
     ]
   }
 }

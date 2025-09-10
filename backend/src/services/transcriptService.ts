@@ -44,7 +44,7 @@ export class TranscriptService {
     console.log(`📹 Video ID: ${videoId}`);
     
     const apiToken = process.env.YOUTUBE_TRANSCRIPT_API_TOKEN;
-    if (!apiToken) {
+    if (!apiToken || apiToken === 'your_transcript_api_token_here') {
       throw new Error('YouTube Transcript API token not configured');
     }
     
@@ -67,7 +67,7 @@ export class TranscriptService {
       if (!response.ok) {
         const errorText = await response.text();
         console.log(`❌ API Error: ${errorText}`);
-        throw new Error(`API request failed: ${response.status}`);
+        throw new Error(`YouTube Transcript API failed: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -83,7 +83,7 @@ export class TranscriptService {
       console.log(`📺 Video Title: ${videoData.title || 'Unknown'}`);
       
       if (!videoData.tracks || videoData.tracks.length === 0) {
-        throw new Error('No transcript tracks found');
+        throw new Error('No transcript tracks found for this video');
       }
       
       const transcriptData = videoData.tracks[0].transcript;

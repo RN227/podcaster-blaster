@@ -29,7 +29,8 @@ interface AIAnalysisResult {
 }
 
 interface SocialMediaPosts {
-  posts: string[];
+  linkedin: string[];
+  twitter: string[];
 }
 
 interface AnalysisResult {
@@ -273,7 +274,7 @@ const VideoAnalyzer: React.FC = () => {
             )}
           </div>
           
-          {result.data && result.data.aiAnalysis && (
+          {result.data && (
             <div>
               {/* Tab Navigation */}
               <div className="border-b border-gray-200 overflow-x-auto">
@@ -324,83 +325,83 @@ const VideoAnalyzer: React.FC = () => {
                           You can still view the complete transcript in the Transcript tab.
                         </p>
                       </div>
-                    ) : result.data.aiAnalysis ? (
-                      <>
-                    {/* Hosts and Guests Section - Side by side on wider screens */}
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {/* Hosts Section */}
-                      {result.data.aiAnalysis.summary.hosts.length > 0 && (
-                        <div className="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-400">
-                          <h4 className="text-md font-semibold text-purple-900 mb-2 flex items-center">
-                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                            </svg>
-                            Host{result.data.aiAnalysis.summary.hosts.length > 1 ? 's' : ''}
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {result.data.aiAnalysis.summary.hosts.map((host, index) => (
-                              <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                                {host}
-                              </span>
-                            ))}
-                          </div>
+                    ) : (
+                      <div>
+                        {/* Hosts and Guests Section - Side by side on wider screens */}
+                        <div className="grid md:grid-cols-2 gap-6">
+                          {/* Hosts Section */}
+                          {result.data.aiAnalysis.summary.hosts.length > 0 && (
+                            <div className="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-400">
+                              <h4 className="text-md font-semibold text-purple-900 mb-2 flex items-center">
+                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                                Host{result.data.aiAnalysis.summary.hosts.length > 1 ? 's' : ''}
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {result.data.aiAnalysis.summary.hosts.map((host, index) => (
+                                  <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                                    {host}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Guests Section */}
+                          {result.data.aiAnalysis.summary.guests.length > 0 && (
+                            <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
+                              <h4 className="text-md font-semibold text-green-900 mb-2 flex items-center">
+                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+                                </svg>
+                                Guest{result.data.aiAnalysis.summary.guests.length > 1 ? 's' : ''}
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {result.data.aiAnalysis.summary.guests.map((guest, index) => (
+                                  <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                    {guest}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
 
-                      {/* Guests Section */}
-                      {result.data.aiAnalysis.summary.guests.length > 0 && (
-                        <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
-                          <h4 className="text-md font-semibold text-green-900 mb-2 flex items-center">
+                        {/* Overview Summary */}
+                        <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
+                          <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
                             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                             </svg>
-                            Guest{result.data.aiAnalysis.summary.guests.length > 1 ? 's' : ''}
+                            Overview
                           </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {result.data.aiAnalysis.summary.guests.map((guest, index) => (
-                              <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                                {guest}
-                              </span>
-                            ))}
-                          </div>
+                          <p className="text-blue-800 leading-relaxed">{result.data.aiAnalysis.summary.overviewSummary}</p>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Overview Summary */}
-                    <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
-                      <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
-                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                        </svg>
-                        Overview
-                      </h4>
-                      <p className="text-blue-800 leading-relaxed">{result.data.aiAnalysis.summary.overviewSummary}</p>
-                    </div>
-
-                    {/* Detailed Points */}
-                    {result.data.aiAnalysis.summary.detailedPoints.length > 0 && (
-                      <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-gray-400">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                          </svg>
-                          Detailed Summary
-                        </h4>
-                        <ul className="space-y-3">
-                          {result.data.aiAnalysis.summary.detailedPoints.map((point, index) => (
-                            <li key={index} className="flex items-start">
-                              <span className="flex-shrink-0 w-6 h-6 bg-gray-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
-                                {index + 1}
-                              </span>
-                              <p className="text-gray-700 leading-relaxed">{point}</p>
-                            </li>
-                          ))}
-                        </ul>
+                        {/* Detailed Points */}
+                        {result.data.aiAnalysis.summary.detailedPoints.length > 0 && (
+                          <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-gray-400">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                              </svg>
+                              Detailed Summary
+                            </h4>
+                            <ul className="space-y-3">
+                              {result.data.aiAnalysis.summary.detailedPoints.map((point, index) => (
+                                <li key={index} className="flex items-start">
+                                  <span className="flex-shrink-0 w-6 h-6 bg-gray-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                                    {index + 1}
+                                  </span>
+                                  <p className="text-gray-700 leading-relaxed">{point}</p>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     )}
-                      </>
-                    ) : null}
                   </div>
                 )}
 
@@ -423,52 +424,52 @@ const VideoAnalyzer: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                    ) : result.data.aiAnalysis ? (
-                      <>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Themes & Core Discussion Points</h3>
-                    <div className="space-y-6">
-                      {result.data.aiAnalysis.keyThemes.map((theme, index) => (
-                        <div key={index} className="bg-indigo-50 rounded-lg p-6 border-l-4 border-indigo-400">
-                          <div className="flex items-start">
-                            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">
-                              {index + 1}
-                            </span>
-                            <div className="flex-1">
-                              {/* Theme Title */}
-                              <h4 className="text-xl font-bold text-indigo-900 mb-3">{theme.title}</h4>
-                              
-                              {/* Theme Summary */}
-                              <p className="text-gray-800 leading-relaxed mb-4">{theme.summary}</p>
-                              
-                              {/* Key Quote - Optional */}
-                              {theme.keyQuote && (
-                                <div className="bg-white/70 rounded-lg p-4 mb-3 border-l-4 border-indigo-200">
-                                  <div className="flex items-start">
-                                    <svg className="w-6 h-6 text-indigo-400 mr-3 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707A1 1 0 011 8.586v-4a1 1 0 01.293-.707l3-3A1 1 0 016 1h4a1 1 0 011 1v4a1 1 0 01-.293.707l-3 3z" clipRule="evenodd" />
+                    ) : (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Themes & Core Discussion Points</h3>
+                        <div className="space-y-6">
+                          {result.data.aiAnalysis.keyThemes.map((theme, index) => (
+                            <div key={index} className="bg-indigo-50 rounded-lg p-6 border-l-4 border-indigo-400">
+                              <div className="flex items-start">
+                                <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">
+                                  {index + 1}
+                                </span>
+                                <div className="flex-1">
+                                  {/* Theme Title */}
+                                  <h4 className="text-xl font-bold text-indigo-900 mb-3">{theme.title}</h4>
+                                  
+                                  {/* Theme Summary */}
+                                  <p className="text-gray-800 leading-relaxed mb-4">{theme.summary}</p>
+                                  
+                                  {/* Key Quote - Optional */}
+                                  {theme.keyQuote && (
+                                    <div className="bg-white/70 rounded-lg p-4 mb-3 border-l-4 border-indigo-200">
+                                      <div className="flex items-start">
+                                        <svg className="w-6 h-6 text-indigo-400 mr-3 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707A1 1 0 001 8.586v-4a1 1 0 01.293-.707l3-3A1 1 0 016 1h4a1 1 0 011 1v4a1 1 0 01-.293.707l-3 3z" clipRule="evenodd" />
+                                        </svg>
+                                        <blockquote className="text-gray-700 italic leading-relaxed">
+                                          "{theme.keyQuote}"
+                                        </blockquote>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Timestamp */}
+                                  <div className="flex items-center text-sm">
+                                    <svg className="w-4 h-4 mr-1 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                                     </svg>
-                                    <blockquote className="text-gray-700 italic leading-relaxed">
-                                      "{theme.keyQuote}"
-                                    </blockquote>
+                                    <span className="text-gray-600 mr-2">Jump to discussion:</span>
+                                    {renderClickableTimestamp(theme.timestamp, 'text-sm font-medium')}
                                   </div>
                                 </div>
-                              )}
-                              
-                              {/* Timestamp */}
-                              <div className="flex items-center text-sm">
-                                <svg className="w-4 h-4 mr-1 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                </svg>
-                                <span className="text-gray-600 mr-2">Jump to discussion:</span>
-                                {renderClickableTimestamp(theme.timestamp, 'text-sm font-medium')}
                               </div>
                             </div>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                      </>
-                    ) : null}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -492,50 +493,50 @@ const VideoAnalyzer: React.FC = () => {
                         </div>
                       </div>
                     ) : result.data.aiAnalysis?.toolsAndCompanies.length > 0 ? (
-                      <>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Tools & Companies Mentioned</h3>
-                    <div className="space-y-4">
-                      {result.data.aiAnalysis.toolsAndCompanies.map((item, index) => (
-                        <div key={index} className="bg-purple-50 rounded-lg p-4 border border-purple-200 hover:shadow-md transition-shadow">
-                          <div className="flex items-center gap-2 mb-2">
-                            {item.link ? (
-                              <a 
-                                href={item.link} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="font-semibold text-purple-900 hover:text-purple-700 underline decoration-dotted flex items-center gap-1"
-                              >
-                                {item.name}
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                              </a>
-                            ) : (
-                              <span className="font-semibold text-purple-900">{item.name}</span>
-                            )}
-                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                              item.type === 'tool' ? 'bg-blue-100 text-blue-800' :
-                              item.type === 'company' ? 'bg-green-100 text-green-800' :
-                              'bg-orange-100 text-orange-800'
-                            }`}>
-                              {item.type}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 leading-relaxed">{item.context}</p>
-                          {item.link && (
-                            <div className="mt-2 pt-2 border-t border-purple-200">
-                              <p className="text-xs text-purple-600">
-                                <svg className="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
-                                </svg>
-                                Official website
-                              </p>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Tools & Companies Mentioned</h3>
+                        <div className="space-y-4">
+                          {result.data.aiAnalysis.toolsAndCompanies.map((item, index) => (
+                            <div key={index} className="bg-purple-50 rounded-lg p-4 border border-purple-200 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-2 mb-2">
+                                {item.link ? (
+                                  <a 
+                                    href={item.link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="font-semibold text-purple-900 hover:text-purple-700 underline decoration-dotted flex items-center gap-1"
+                                  >
+                                    {item.name}
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                  </a>
+                                ) : (
+                                  <span className="font-semibold text-purple-900">{item.name}</span>
+                                )}
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                  item.type === 'tool' ? 'bg-blue-100 text-blue-800' :
+                                  item.type === 'company' ? 'bg-green-100 text-green-800' :
+                                  'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {item.type}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600 leading-relaxed">{item.context}</p>
+                              {item.link && (
+                                <div className="mt-2 pt-2 border-t border-purple-200">
+                                  <p className="text-xs text-purple-600">
+                                    <svg className="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
+                                    </svg>
+                                    Official website
+                                  </p>
+                                </div>
+                              )}
                             </div>
-                          )}
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                      </>
+                      </div>
                     ) : (
                       <p className="text-gray-500 italic">No tools or companies were identified in this video.</p>
                     )}
@@ -561,38 +562,86 @@ const VideoAnalyzer: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                    ) : result.data.socialMediaPosts && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media Posts</h3>
-                    <div className="space-y-6">
-                      {result.data.socialMediaPosts.posts.map((post, index) => (
-                        <div key={index} className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-lg font-semibold text-blue-900 flex items-center">
-                              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M6.29 18.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0020 3.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.073 4.073 0 01.8 7.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 010 16.407a11.616 11.616 0 006.29 1.84"></path>
+                    ) : result.data.socialMediaPosts ? (
+                      <div className="space-y-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media Posts</h3>
+                        
+                        {/* LinkedIn Posts */}
+                        {result.data.socialMediaPosts.linkedin.length > 0 && (
+                          <div className="space-y-4">
+                            <h4 className="text-md font-semibold text-blue-700 flex items-center">
+                              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                               </svg>
-                              Social Media Post #{index + 1}
+                              LinkedIn Posts
                             </h4>
-                            <button
-                              onClick={() => navigator.clipboard.writeText(post)}
-                              className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors flex items-center"
-                            >
-                              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"></path>
-                                <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2V5a2 2 0 00-2-2V5a1 1 0 00-1-1H6a1 1 0 00-1 1v2a2 2 0 00-2 2v6h2V5z"></path>
+                            <div className="space-y-4">
+                              {result.data.socialMediaPosts.linkedin.map((post, index) => (
+                                <div key={index} className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <h5 className="text-sm font-semibold text-blue-900">
+                                      LinkedIn Post #{index + 1}
+                                    </h5>
+                                    <button
+                                      onClick={() => navigator.clipboard.writeText(post)}
+                                      className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors flex items-center"
+                                    >
+                                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"></path>
+                                        <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2V5a2 2 0 00-2-2V5a1 1 0 00-1-1H6a1 1 0 00-1 1v2a2 2 0 00-2 2v6h2V5z"></path>
+                                      </svg>
+                                      Copy
+                                    </button>
+                                  </div>
+                                  <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                                    <pre className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans">
+                                      {post}
+                                    </pre>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Twitter Posts */}
+                        {result.data.socialMediaPosts.twitter.length > 0 && (
+                          <div className="space-y-4">
+                            <h4 className="text-md font-semibold text-blue-700 flex items-center">
+                              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
                               </svg>
-                              Copy
-                            </button>
+                              Twitter Posts
+                            </h4>
+                            <div className="space-y-4">
+                              {result.data.socialMediaPosts.twitter.map((post, index) => (
+                                <div key={index} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <h5 className="text-sm font-semibold text-gray-900">
+                                      Twitter Post #{index + 1}
+                                    </h5>
+                                    <button
+                                      onClick={() => navigator.clipboard.writeText(post)}
+                                      className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors flex items-center"
+                                    >
+                                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"></path>
+                                        <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2V5a2 2 0 00-2-2V5a1 1 0 00-1-1H6a1 1 0 00-1 1v2a2 2 0 00-2 2v6h2V5z"></path>
+                                      </svg>
+                                      Copy
+                                    </button>
+                                  </div>
+                                  <div className="bg-white/70 rounded-lg p-4 border border-gray-100">
+                                    <pre className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans">
+                                      {post}
+                                    </pre>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
-                            <pre className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans">
-                              {post}
-                            </pre>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        )}
+                      </div>
                     ) : (
                       <p className="text-gray-500 italic">No social media posts available.</p>
                     )}

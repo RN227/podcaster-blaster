@@ -57,7 +57,7 @@ app.post('/api/analyze', async (req, res) => {
       // Generate social media posts
       console.log('📱 Generating social media posts...');
       socialPosts = await aiAnalysisService.generateSocialMediaPosts(aiAnalysis);
-      console.log(`✅ Generated ${socialPosts.posts.length} social media posts`);
+      console.log(`✅ Generated ${socialPosts.linkedin.length} LinkedIn and ${socialPosts.twitter.length} Twitter posts`);
     } catch (aiErr) {
       console.error('❌ AI analysis failed:', aiErr);
       aiError = aiErr instanceof Error ? aiErr.message : 'AI analysis failed';
